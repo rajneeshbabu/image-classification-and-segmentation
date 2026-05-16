@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Image Classification and Segmentation — MLDS · Rajneesh Babu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --bg:#0a0e1a; --bg2:#111827; --bg3:#1f2937;
+      --border:#1e3a5f;
+      --blue:#3b82f6; --blue2:#60a5fa; --blue3:#1d4ed8;
+      --purple:#8b5cf6; --purple2:#a78bfa;
+      --green:#10b981; --green2:#34d399;
+      --amber:#f59e0b; --amber2:#fbbf24;
+      --red:#ef4444; --red2:#f87171;
+      --cyan:#06b6d4; --cyan2:#22d3ee;
+      --text:#f1f5f9; --text2:#94a3b8; --text3:#64748b;
+      --shadow:0 4px 24px rgba(59,130,246,0.12);
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;line-height:1.7;overflow-x:hidden;}
+    ::-webkit-scrollbar{width:4px;}
+    ::-webkit-scrollbar-thumb{background:linear-gradient(var(--blue),var(--purple));border-radius:2px;}
+
+    /* ── HERO ── */
+    .hero{
+      min-height:100vh;display:flex;align-items:center;
+      background:radial-gradient(ellipse at 15% 50%,rgba(37,99,235,0.18) 0%,transparent 55%),
+                 radial-gradient(ellipse at 85% 20%,rgba(139,92,246,0.13) 0%,transparent 50%),
+                 radial-gradient(ellipse at 50% 90%,rgba(6,182,212,0.08) 0%,transparent 50%),
+                 var(--bg);
+      padding:4rem 0;position:relative;overflow:hidden;
+    }
+    .hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%232563eb' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");pointer-events:none;}
+    .container{max-width:960px;margin:0 auto;padding:0 1.5rem;position:relative;z-index:1;}
+
+    .badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(37,99,235,0.12);border:1px solid rgba(59,130,246,0.3);color:var(--blue2);font-size:.72rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:.3rem 1rem;border-radius:99px;margin-bottom:1.5rem;}
+    .badge-dot{width:6px;height:6px;background:var(--cyan);border-radius:50%;animation:pulse 2s infinite;}
+    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+    h1{font-size:clamp(2rem,5vw,3.4rem);font-weight:900;letter-spacing:-1.5px;line-height:1.1;margin-bottom:1rem;}
+    .h1-main{background:linear-gradient(135deg,#f1f5f9,#94a3b8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .h1-sub{background:linear-gradient(135deg,#60a5fa,#a78bfa,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .hero-desc{font-size:1rem;color:var(--text2);margin-bottom:2rem;max-width:640px;line-height:1.85;}
+    .hero-desc span{color:var(--blue2);font-weight:600;}
+
+    .hero-meta{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:2.5rem;}
+    .meta-chip{display:inline-flex;align-items:center;gap:.4rem;padding:.28rem .8rem;border-radius:6px;font-size:.75rem;font-weight:600;border:1px solid;}
+    .mc-blue  {background:rgba(59,130,246,0.1);border-color:rgba(59,130,246,0.3);color:var(--blue2);}
+    .mc-purple{background:rgba(139,92,246,0.1);border-color:rgba(139,92,246,0.3);color:var(--purple2);}
+    .mc-green {background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.3);color:var(--green2);}
+    .mc-amber {background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.3);color:var(--amber2);}
+    .mc-cyan  {background:rgba(6,182,212,0.1);border-color:rgba(6,182,212,0.3);color:var(--cyan2);}
+
+    .hero-links{display:flex;gap:.75rem;flex-wrap:wrap;}
+    .btn{padding:.6rem 1.4rem;border-radius:8px;font-weight:600;font-size:.875rem;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;transition:all .2s;}
+    .btn-primary{background:linear-gradient(135deg,var(--blue3),var(--purple));color:#fff;box-shadow:0 4px 15px rgba(37,99,235,0.3);}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(37,99,235,0.45);}
+    .btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);}
+    .btn-ghost:hover{border-color:var(--blue);color:var(--blue2);transform:translateY(-2px);}
+
+    /* ── SECTIONS ── */
+    section{padding:5rem 0;}
+    .sec-alt{background:rgba(59,130,246,0.02);}
+    .sec-label{font-size:.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--blue2);margin-bottom:.5rem;}
+    h2{font-size:clamp(1.5rem,3vw,2rem);font-weight:800;letter-spacing:-.5px;margin-bottom:.5rem;}
+    .sec-divider{height:2px;width:48px;background:linear-gradient(90deg,var(--blue),transparent);margin-bottom:2.5rem;border-radius:2px;}
+    .sec-sub{color:var(--text2);font-size:.95rem;max-width:680px;margin-bottom:2rem;line-height:1.8;}
+
+    /* ── PARTS OVERVIEW ── */
+    .parts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:1rem;}
+    .part-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.4rem;transition:all .25s;border-top:3px solid;}
+    .part-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);}
+    .pt1{border-top-color:var(--cyan);}
+    .pt2a{border-top-color:var(--blue);}
+    .pt2b{border-top-color:var(--purple);}
+    .pt3{border-top-color:var(--green);}
+    .part-num{font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:.6rem;}
+    .pn1{color:var(--cyan2);}
+    .pn2a{color:var(--blue2);}
+    .pn2b{color:var(--purple2);}
+    .pn3{color:var(--green2);}
+    .part-title{font-size:.92rem;font-weight:800;color:var(--text);margin-bottom:.4rem;}
+    .part-desc{font-size:.8rem;color:var(--text2);line-height:1.7;}
+
+    /* ── ARCHITECTURE ── */
+    .arch-block{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.6rem;margin-bottom:1.2rem;}
+    .arch-label{font-size:.7rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:.6rem;}
+    .arch-title{font-size:1rem;font-weight:800;color:var(--text);margin-bottom:.8rem;}
+    .arch-flow{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--text2);line-height:1.9;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;margin-bottom:.8rem;overflow-x:auto;}
+    .arch-flow .hl{color:var(--blue2);}
+    .arch-flow .hl2{color:var(--purple2);}
+    .arch-flow .hl3{color:var(--green2);}
+    .arch-flow .hl4{color:var(--amber2);}
+    .miou-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);color:var(--green2);font-size:.8rem;font-weight:700;padding:.3rem .9rem;border-radius:6px;}
+    .arch-tags{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.8rem;}
+    .atag{font-size:.7rem;font-weight:600;padding:.2rem .6rem;border-radius:4px;background:var(--bg3);border:1px solid var(--border);color:var(--text3);}
+
+    /* ── STATS TABLE ── */
+    .table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border);}
+    table{width:100%;border-collapse:collapse;font-size:.83rem;}
+    thead{background:var(--bg3);}
+    th{padding:.85rem 1rem;text-align:left;font-weight:700;color:var(--blue2);font-size:.72rem;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+    td{padding:.75rem 1rem;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text2);}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:rgba(59,130,246,0.03);}
+    td.key{color:var(--text);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:.8rem;}
+    td.val{color:var(--green2);font-weight:700;}
+    td.sig{color:var(--red2);font-weight:700;}
+    .tag{display:inline-block;padding:.15rem .55rem;border-radius:4px;font-size:.68rem;font-weight:700;}
+    .tag-green{background:rgba(16,185,129,0.15);color:var(--green2);}
+    .tag-red  {background:rgba(239,68,68,0.15);color:var(--red2);}
+    .tag-amber{background:rgba(245,158,11,0.15);color:var(--amber2);}
+    .tag-blue {background:rgba(59,130,246,0.15);color:var(--blue2);}
+
+    /* ── PCA SECTION ── */
+    .pca-findings{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;}
+    .pca-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.2rem;}
+    .pca-icon{font-size:1.3rem;margin-bottom:.5rem;}
+    .pca-title{font-size:.85rem;font-weight:700;color:var(--cyan2);margin-bottom:.3rem;}
+    .pca-desc{font-size:.8rem;color:var(--text2);line-height:1.7;}
+
+    /* ── CODE ── */
+    .code-block{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.4rem 1.6rem;font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--text2);line-height:2;overflow-x:auto;margin-bottom:1rem;}
+    .cb-c{color:var(--text3);}
+    .cb-k{color:var(--blue2);}
+    .cb-s{color:var(--green2);}
+    .cb-n{color:var(--amber2);}
+    .cb-p{color:var(--purple2);}
+
+    /* ── VOC CLASSES ── */
+    .classes-wrap{display:flex;flex-wrap:wrap;gap:.45rem;}
+    .cls-pill{font-size:.72rem;font-weight:600;padding:.22rem .65rem;border-radius:5px;background:var(--bg2);border:1px solid var(--border);color:var(--text2);font-family:'JetBrains Mono',monospace;}
+
+    /* ── TECH PILLS ── */
+    .tech-pills{display:flex;flex-wrap:wrap;gap:.6rem;}
+    .pill{padding:.35rem .9rem;border-radius:6px;font-size:.78rem;font-weight:600;background:var(--bg2);border:1px solid var(--border);color:var(--text2);transition:all .2s;}
+    .pill:hover{border-color:var(--blue);color:var(--blue2);}
+    .pill-hl{border-color:rgba(59,130,246,0.3);color:var(--blue2);}
+
+    /* ── RESULT HIGHLIGHT BOXES ── */
+    .result-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:2rem;}
+    .result-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.2rem;text-align:center;}
+    .result-val{font-size:1.8rem;font-weight:900;letter-spacing:-1px;margin-bottom:.3rem;}
+    .result-label{font-size:.72rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;}
+    .rv-green{background:linear-gradient(135deg,var(--green),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .rv-blue {background:linear-gradient(135deg,var(--blue2),var(--purple2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .rv-red  {background:linear-gradient(135deg,var(--red2),var(--amber2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .rv-amber{background:linear-gradient(135deg,var(--amber),var(--amber2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+
+    footer{border-top:1px solid var(--border);padding:2rem 0;text-align:center;color:var(--text3);font-size:.8rem;}
+    footer a{color:var(--blue2);text-decoration:none;}
+    footer a:hover{text-decoration:underline;}
+
+    .reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease;}
+    .revealed{opacity:1;transform:none;}
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="badge"><span class="badge-dot"></span>Course Project · MLDS · IISc Bengaluru</div>
+    <h1>
+      <span class="h1-main">PCA · Classification</span><br/>
+      <span class="h1-sub">Segmentation · Statistical Testing</span>
+    </h1>
+    <p class="hero-desc">
+      End-to-end computer vision assignment — from <span>PCA from scratch</span> to deep
+      <span>multi-label classification</span> and <span>semantic segmentation</span> on PASCAL VOC,
+      validated with <span>Wilcoxon signed-rank</span> and <span>Bootstrap CI</span>.
+    </p>
+    <div class="hero-meta">
+      <span class="meta-chip mc-cyan">📐 PCA from Scratch</span>
+      <span class="meta-chip mc-blue">🏷️ 20-class Multi-label Clf</span>
+      <span class="meta-chip mc-purple">🖼️ Semantic Segmentation</span>
+      <span class="meta-chip mc-green">📊 Wilcoxon + Bootstrap</span>
+      <span class="meta-chip mc-amber">IISc · MLDS · 2026</span>
+    </div>
+    <div class="hero-links">
+      <a href="https://github.com/rajneeshbabu/image-classification-and-segmentation" class="btn btn-primary" target="_blank">
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg>
+        GitHub Repo
+      </a>
+      <a href="report.pdf" class="btn btn-ghost" target="_blank">📄 Report PDF</a>
+      <a href="https://rajneeshbabu.github.io" class="btn btn-ghost" target="_blank">← Portfolio</a>
+    </div>
+  </div>
+</section>
+
+<!-- OVERVIEW RESULTS -->
+<section class="reveal">
+  <div class="container">
+    <p class="sec-label">Results at a Glance</p>
+    <h2>Key Numbers</h2>
+    <div class="sec-divider"></div>
+    <div class="result-row">
+      <div class="result-box">
+        <div class="result-val rv-cyan" style="background:linear-gradient(135deg,#22d3ee,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">~100</div>
+        <div class="result-label">PCA components for 90% variance</div>
+      </div>
+      <div class="result-box">
+        <div class="result-val rv-blue">20</div>
+        <div class="result-label">VOC classes · Multi-label</div>
+      </div>
+      <div class="result-box">
+        <div class="result-val rv-green">0.7872</div>
+        <div class="result-label">Model A mIoU (ResNet-50 + ASPP)</div>
+      </div>
+      <div class="result-box">
+        <div class="result-val rv-red">6.2e-34</div>
+        <div class="result-label">Wilcoxon p-value (A vs B)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PARTS OVERVIEW -->
+<section class="sec-alt reveal">
+  <div class="container">
+    <p class="sec-label">Course Structure</p>
+    <h2>Four Parts</h2>
+    <div class="sec-divider"></div>
+    <div class="parts-grid">
+      <div class="part-card pt1">
+        <div class="part-num pn1">Part 1</div>
+        <div class="part-title">PCA from Scratch</div>
+        <div class="part-desc">NumPy-only PCA via covariance matrix + eigendecomposition. Variance explained curve, reconstruction at k = 25 / 50 / 100 / 200.</div>
+      </div>
+      <div class="part-card pt2a">
+        <div class="part-num pn2a">Part 2A</div>
+        <div class="part-title">Multi-Label Classification</div>
+        <div class="part-desc">ResNet-50 + custom head. 20 VOC classes, BCELoss, sigmoid outputs. Discriminative learning rates + cosine schedule.</div>
+      </div>
+      <div class="part-card pt2b">
+        <div class="part-num pn2b">Part 2B</div>
+        <div class="part-title">Semantic Segmentation</div>
+        <div class="part-desc">Two models: ResNet-50 + ASPP + U-Net decoder (Model A, mIoU 0.7872) and ResNet-18 U-Net (Model B, mIoU 0.6848).</div>
+      </div>
+      <div class="part-card pt3">
+        <div class="part-num pn3">Part 3</div>
+        <div class="part-title">Statistical Testing</div>
+        <div class="part-desc">Wilcoxon signed-rank test (p = 6.19e-34) + Bootstrap 95% CI [0.7642, 0.8068]. Model A conclusively superior.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PART 1: PCA -->
+<section class="reveal">
+  <div class="container">
+    <p class="sec-label">Part 1</p>
+    <h2>PCA from Scratch</h2>
+    <div class="sec-divider"></div>
+    <p class="sec-sub">NumPy-only implementation — no <code style="color:var(--blue2);background:var(--bg3);padding:.1rem .4rem;border-radius:4px;font-size:.85rem;">sklearn.decomposition.PCA</code>. Covariance matrix → eigendecomposition → top-k projection → reconstruction.</p>
+    <div class="pca-findings">
+      <div class="pca-card">
+        <div class="pca-icon">📊</div>
+        <div class="pca-title">90% Variance at k ≈ 100</div>
+        <div class="pca-desc">The scree plot shows a clear elbow near k = 100, confirming that natural images are highly compressible. Strong diminishing returns beyond that.</div>
+      </div>
+      <div class="pca-card">
+        <div class="pca-icon">🖼️</div>
+        <div class="pca-title">Reconstruction Quality</div>
+        <div class="pca-desc">k = 25 retains coarse shape/colour. k = 100–200 is visually near-identical to original. High-frequency textures and edges are lost first — expected from linear PCA.</div>
+      </div>
+      <div class="pca-card">
+        <div class="pca-icon">📉</div>
+        <div class="pca-title">MSE vs Components</div>
+        <div class="pca-desc">Reconstruction MSE drops rapidly from k = 1 to k = 100 then plateaus. The elbow matches the 90% explained variance threshold.</div>
+      </div>
+      <div class="pca-card">
+        <div class="pca-icon">⚠️</div>
+        <div class="pca-title">PCA Limitation</div>
+        <div class="pca-desc">PCA is linear — it cannot capture non-linear structure in image data. Textures, fine edges, and complex objects require far more components than smooth regions.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PART 2A: CLASSIFICATION -->
+<section class="sec-alt reveal">
+  <div class="container">
+    <p class="sec-label">Part 2A</p>
+    <h2>Multi-Label Classification</h2>
+    <div class="sec-divider"></div>
+    <div class="arch-block">
+      <div class="arch-label" style="color:var(--blue2);">Architecture — ResNet-50 + Custom Head</div>
+      <div class="arch-title">ClfModel</div>
+      <div class="arch-flow">
+<span class="hl">ResNet-50</span> (ImageNet pretrained, IMAGENET1K_V2)
+  → GlobalAvgPool → [<span class="hl4">2048</span>]
+  → <span class="hl2">Dropout(0.5)</span> → Linear(2048 → 512)
+  → BatchNorm1d → ReLU
+  → <span class="hl2">Dropout(0.3)</span> → Linear(512 → 20)
+  → <span class="hl3">Sigmoid()</span>           <span class="cb-c">← per-class probabilities in [0,1]</span>
+      </div>
+      <div class="arch-tags">
+        <span class="atag">BCELoss</span>
+        <span class="atag">backbone lr: 5e-5</span>
+        <span class="atag">head lr: 1e-3</span>
+        <span class="atag">Cosine Schedule</span>
+        <span class="atag">Discriminative LR</span>
+        <span class="atag">RandomHorizontalFlip</span>
+        <span class="atag">ColorJitter</span>
+        <span class="atag">224×224 input</span>
+      </div>
+    </div>
+    <p style="font-size:.85rem;color:var(--text3);margin-bottom:1rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">20 PASCAL VOC Classes</p>
+    <div class="classes-wrap">
+      <span class="cls-pill">aeroplane</span><span class="cls-pill">bicycle</span><span class="cls-pill">bird</span><span class="cls-pill">boat</span><span class="cls-pill">bottle</span>
+      <span class="cls-pill">bus</span><span class="cls-pill">car</span><span class="cls-pill">cat</span><span class="cls-pill">chair</span><span class="cls-pill">cow</span>
+      <span class="cls-pill">diningtable</span><span class="cls-pill">dog</span><span class="cls-pill">horse</span><span class="cls-pill">motorbike</span><span class="cls-pill">person</span>
+      <span class="cls-pill">pottedplant</span><span class="cls-pill">sheep</span><span class="cls-pill">sofa</span><span class="cls-pill">train</span><span class="cls-pill">tvmonitor</span>
+    </div>
+  </div>
+</section>
+
+<!-- PART 2B: SEGMENTATION -->
+<section class="reveal">
+  <div class="container">
+    <p class="sec-label">Part 2B</p>
+    <h2>Semantic Segmentation</h2>
+    <div class="sec-divider"></div>
+    <p class="sec-sub">Two models trained on the same dataset, evaluated on the same 15% hold-out split (seed 42) for the statistical comparison in Part 3.</p>
+
+    <div class="arch-block" style="border-left:3px solid var(--purple);">
+      <div class="arch-label" style="color:var(--purple2);">Model A · Primary</div>
+      <div class="arch-title">ResNet-50 + ASPP + U-Net Decoder
+        <span class="miou-badge" style="margin-left:.75rem;">mIoU 0.7872</span>
+      </div>
+      <div class="arch-flow">
+<span class="hl">ResNet-50</span> encoder (ImageNet pretrained)
+  → layer1[256] → layer2[512] → layer3[1024] → layer4[<span class="hl4">2048</span>]
+  → <span class="hl2">ASPP</span> (rates = 1, 6, 12, 18 + GlobalAvgPool) → [256]
+  → <span class="hl3">UpBlock×4</span> (bilinear upsample + skip connections)
+  → Final Conv → [<span class="hl4">21</span> classes]
+  + <span class="hl2">Aux head</span> from layer3 (CE + Dice loss)
+      </div>
+      <div class="arch-tags">
+        <span class="atag">384×384 input</span>
+        <span class="atag">CE + Dice loss</span>
+        <span class="atag">Class-balanced sampler</span>
+        <span class="atag">Multi-scale TTA (384, 480)</span>
+        <span class="atag">Horizontal flip TTA</span>
+        <span class="atag">4 forward passes</span>
+        <span class="atag">albumentations aug</span>
+      </div>
+    </div>
+
+    <div class="arch-block" style="border-left:3px solid var(--text3);">
+      <div class="arch-label" style="color:var(--text3);">Model B · Comparison Baseline</div>
+      <div class="arch-title">ResNet-18 + Simple U-Net
+        <span style="display:inline-flex;align-items:center;gap:.5rem;background:rgba(100,116,139,0.12);border:1px solid rgba(100,116,139,0.3);color:var(--text3);font-size:.8rem;font-weight:700;padding:.3rem .9rem;border-radius:6px;margin-left:.75rem;">mIoU 0.6848</span>
+      </div>
+      <div class="arch-flow">
+<span class="hl">ResNet-18</span> encoder (lighter backbone)
+  → U-Net decoder (no ASPP, no auxiliary head)
+  → Final Conv → [<span class="hl4">21</span> classes]
+      </div>
+      <div class="arch-tags">
+        <span class="atag">No ASPP</span>
+        <span class="atag">No aux head</span>
+        <span class="atag">Lighter model</span>
+        <span class="atag">segmenter_B.pth</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PART 3: STATISTICAL TESTING -->
+<section class="sec-alt reveal">
+  <div class="container">
+    <p class="sec-label">Part 3</p>
+    <h2>Statistical Testing</h2>
+    <div class="sec-divider"></div>
+
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;border-left:3px solid var(--green);">
+      <p style="font-size:.8rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--green2);margin-bottom:.6rem;">Why Wilcoxon, not t-test?</p>
+      <p style="font-size:.875rem;color:var(--text2);line-height:1.8;">IoU scores are bounded to [0,1] and right-skewed. Shapiro–Wilk confirms the paired differences are <strong style="color:var(--text);">non-normal (p = 2.895e-13)</strong>, violating the t-test normality assumption. The Wilcoxon signed-rank test is non-parametric — it only assumes meaningful rank ordering — making it robust to skewed distributions and outliers in IoU data.</p>
+    </div>
+
+    <div class="table-wrap" style="margin-bottom:1.5rem;">
+      <table>
+        <thead>
+          <tr><th>Metric</th><th>Value</th><th>Interpretation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="key">Paired samples (n)</td><td class="val">330</td><td style="color:var(--text2);">15% hold-out split, seed 42</td></tr>
+          <tr><td class="key">Model A mean mIoU</td><td class="val">0.7872</td><td style="color:var(--text2);">ResNet-50 + ASPP (primary)</td></tr>
+          <tr><td class="key">Model B mean mIoU</td><td style="color:var(--text3);font-weight:600;">0.6848</td><td style="color:var(--text2);">ResNet-18 U-Net (baseline)</td></tr>
+          <tr><td class="key">Difference (A − B)</td><td class="val">+0.1024</td><td style="color:var(--text2);">Model A is better by ~10pp</td></tr>
+          <tr><td class="key">Shapiro–Wilk p</td><td class="sig">2.895e-13</td><td style="color:var(--text2);">Non-normal → Wilcoxon justified</td></tr>
+          <tr><td class="key">Wilcoxon W</td><td class="val">6106.0</td><td style="color:var(--text2);">Signed-rank statistic</td></tr>
+          <tr><td class="key">Wilcoxon p-value</td><td class="sig">6.1936e-34</td><td style="color:var(--text2);"><span class="tag tag-red">Reject H₀</span> — models differ significantly</td></tr>
+          <tr><td class="key">Bootstrap CI (95%)</td><td class="val">[0.7642, 0.8068]</td><td style="color:var(--text2);">B = 1000, percentile method, Model A</td></tr>
+          <tr><td class="key">Bootstrap SE</td><td style="color:var(--text2);font-weight:600;">0.0108</td><td style="color:var(--text2);">Tight — mIoU estimate is stable</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:12px;padding:1.2rem 1.4rem;">
+      <p style="font-size:.85rem;font-weight:700;color:var(--green2);margin-bottom:.4rem;">Conclusion</p>
+      <p style="font-size:.875rem;color:var(--text2);line-height:1.8;">p = 6.19e-34 ≪ 0.05 → we <strong style="color:var(--text);">reject H₀</strong>. Model A (ResNet-50 + ASPP) is conclusively superior to Model B (ResNet-18 U-Net). The bootstrap 95% CI [0.7642, 0.8068] is tight, confirming the mIoU estimate is stable on the hold-out split.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW TO RUN -->
+<section class="reveal">
+  <div class="container">
+    <p class="sec-label">Run Locally</p>
+    <h2>Getting Started</h2>
+    <div class="sec-divider"></div>
+    <div class="code-block">
+<span class="cb-c"># 1. Clone and install</span>
+<span class="cb-k">git clone</span> <span class="cb-s">https://github.com/rajneeshbabu/image-classification-and-segmentation.git</span>
+<span class="cb-k">cd</span> image-classification-and-segmentation
+<span class="cb-k">pip install</span> -r requirements.txt
+
+<span class="cb-c"># 2. Training notebook (Parts 1, 2A, 2B) — run top to bottom</span>
+<span class="cb-k">jupyter notebook</span> <span class="cb-s">training_notebook.ipynb</span>
+
+<span class="cb-c"># 3. Statistical tests (Part 3) — requires weights from step 2</span>
+<span class="cb-k">jupyter notebook</span> <span class="cb-s">statistical_tests.ipynb</span>
+    </div>
+
+    <p style="font-size:.85rem;font-weight:700;color:var(--blue2);margin-bottom:.6rem;margin-top:1.5rem;">Using the evaluator API</p>
+    <div class="code-block">
+<span class="cb-k">from</span> classification.model <span class="cb-k">import</span> ClassificationModel
+<span class="cb-k">from</span> segmentation.model   <span class="cb-k">import</span> SegmentationModel
+<span class="cb-k">import</span> numpy <span class="cb-k">as</span> np
+
+<span class="cb-c"># Classification — returns {class_name: probability}</span>
+clf   = <span class="cb-p">ClassificationModel</span>(weights_dir=<span class="cb-s">"classification/weights"</span>)
+probs = clf.predict(image)   <span class="cb-c"># image: H×W×3 uint8 np.ndarray</span>
+
+<span class="cb-c"># Segmentation — returns H×W uint8 label map (0–20)</span>
+seg   = <span class="cb-p">SegmentationModel</span>(weights_dir=<span class="cb-s">"segmentation/weights"</span>)
+mask  = seg.predict(image)   <span class="cb-c"># multi-scale + flip TTA applied automatically</span>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section class="sec-alt reveal">
+  <div class="container">
+    <p class="sec-label">Tech Stack</p>
+    <h2>Libraries &amp; Tools</h2>
+    <div class="sec-divider"></div>
+    <div class="tech-pills">
+      <span class="pill pill-hl">Python 3.10+</span>
+      <span class="pill pill-hl">PyTorch 2.0+</span>
+      <span class="pill pill-hl">torchvision</span>
+      <span class="pill pill-hl">NumPy</span>
+      <span class="pill">albumentations</span>
+      <span class="pill">scikit-learn</span>
+      <span class="pill">scipy</span>
+      <span class="pill">pandas</span>
+      <span class="pill">Pillow</span>
+      <span class="pill">scikit-image</span>
+      <span class="pill">matplotlib</span>
+      <span class="pill">tqdm</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>
+      <a href="https://rajneeshbabu.github.io">Rajneesh Babu</a> ·
+      SR 26058 · M.Tech CDS · IISc Bengaluru · 2026
+    </p>
+  </div>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver(
+    entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('revealed'); }),
+    { threshold: 0.08 }
+  );
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
